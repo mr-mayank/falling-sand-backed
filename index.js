@@ -4,6 +4,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { createServer } from "http";
 import { Server } from "socket.io";
+
+import connectDB from "./config/db.js";
 import userRoutes from "./routes/user.js";
 import battleShipRoutes from "./routes/battleship.js";
 
@@ -12,17 +14,16 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// Middleware
+
 app.use(express.json({ limit: "30mb", extended: true }));
 app.use(express.urlencoded({ limit: "30mb", extended: true }));
 app.use(cors());
 
-// Create an HTTP server and integrate Socket.io
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "*", // Allow all origins (change this for production)
-    methods: ["GET", "POST"],
+    origin: "*",
+     methods: ["GET", "POST"],
   },
   pingTimeout: 60000,
   pingInterval: 25000,
@@ -30,7 +31,6 @@ const io = new Server(httpServer, {
 
 const activeGames = new Map();
 
-// Socket.io for real-time communication
 io.on("connection", (socket) => {
   console.log("A user connected");
 
@@ -85,20 +85,12 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Handle real-time game updates
   socket.on("gameUpdate", (gameId, data) => {
     io.to(gameId).emit("update", data);
   });
-
-  // Disconnect event
-  socket.on("disconnect", () => {
-    console.log("A user disconnected");
-  });
 });
 
-// Routes
 
-// Default route for health check
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
@@ -117,12 +109,8 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Internal Server Error" });
 });
 
-// MongoDB Connection and Server Startup
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
-    httpServer.listen(PORT, () =>
-      console.log(`Server running on http://localhost:${PORT}`)
-    );
-  })
-  .catch((error) => console.log(`${error} did not connect`));
+
+connectDB(); // Use the connectDB function to connect to MongoDB
+httpServer.listen(PORT, () =>
+  console.log(`Server running on http://localhost:${PORT}`)
+);
