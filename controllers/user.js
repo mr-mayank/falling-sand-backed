@@ -5,6 +5,7 @@ import User from "../models/User.js";
 const secret = "battleArena";
 
 export const signin = async (req, res) => {
+
   const { name, email, password } = req.body;
 
   try {
@@ -16,6 +17,7 @@ export const signin = async (req, res) => {
       oldUser = await User.findOne({ name });
     }
 
+
     if (!oldUser)
       return res.status(404).json({ message: "User doesn't exist" });
 
@@ -25,6 +27,7 @@ export const signin = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
 
     const token = jwt.sign({ name: oldUser.name, id: oldUser._id }, secret, {
+
       expiresIn: "1h",
     });
 
@@ -35,6 +38,7 @@ export const signin = async (req, res) => {
 };
 
 export const signup = async (req, res) => {
+
   const { email, password, name } = req.body;
 
   try {
@@ -46,6 +50,7 @@ export const signup = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const result = await User.create({
+
       email: email || "",
       password: hashedPassword,
       name: name || "",

@@ -7,6 +7,7 @@ import {
   kickPlayer,
   updateGameBoard,
 } from "../controllers/battleship.js";
+
 const router = express.Router();
 
 router.post("/create", createGame);
