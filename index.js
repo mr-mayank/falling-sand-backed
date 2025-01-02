@@ -14,7 +14,6 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-
 app.use(express.json({ limit: "30mb", extended: true }));
 app.use(express.urlencoded({ limit: "30mb", extended: true }));
 app.use(cors());
@@ -23,7 +22,7 @@ const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
     origin: "*",
-     methods: ["GET", "POST"],
+    methods: ["GET", "POST"],
   },
   pingTimeout: 60000,
   pingInterval: 25000,
@@ -90,13 +89,12 @@ io.on("connection", (socket) => {
   });
 });
 
-
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
-app.use("/user", userRoutes);
-app.use("/battleship", battleShipRoutes);
+app.use("/auth-service/v1/auth", userRoutes);
+app.use("/battleship/v1", battleShipRoutes);
 
 // 404 Error Handling Middleware
 app.use((req, res, next) => {
@@ -109,8 +107,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Internal Server Error" });
 });
 
-
-connectDB(); // Use the connectDB function to connect to MongoDB
+connectDB();
 httpServer.listen(PORT, () =>
   console.log(`Server running on http://localhost:${PORT}`)
 );
