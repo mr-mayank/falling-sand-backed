@@ -5,8 +5,7 @@ import User from "../models/User.js";
 const secret = "battleArena";
 
 export const signin = async (req, res) => {
-
-  const { name, email, password } = req.body;
+  const { username, email, password } = req.body;
 
   try {
     let oldUser;
@@ -14,55 +13,115 @@ export const signin = async (req, res) => {
     if (email) {
       oldUser = await User.findOne({ email });
     } else {
-      oldUser = await User.findOne({ name });
+      oldUser = await User.findOne({ username });
     }
 
-
-    if (!oldUser)
-      return res.status(404).json({ message: "User doesn't exist" });
+    if (!oldUser) {
+      return res.status(403).json({
+        Status: "failure",
+        Error: {
+          message:
+            "Email or password seems to be wrong, please try again with valid credentials.",
+          name: "ValidationError",
+          code: "EX-00101",
+        },
+      });
+    }
 
     const isPasswordCorrect = await bcrypt.compare(password, oldUser.password);
 
-    if (!isPasswordCorrect)
-      return res.status(400).json({ message: "Invalid credentials" });
+    if (!isPasswordCorrect) {
+      return res.status(403).json({
+        Status: "failure",
+        Error: {
+          message:
+            "Email or password seems to be wrong, please try again with valid credentials.",
+          name: "ValidationError",
+          code: "EX-00101",
+        },
+      });
+    }
 
-    const token = jwt.sign({ name: oldUser.name, id: oldUser._id }, secret, {
+    const token = jwt.sign(
+      { username: oldUser.username, id: oldUser._id },
+      secret,
+      {
+        expiresIn: "1h",
+      }
+    );
 
-      expiresIn: "1h",
+    res.status(200).json({
+      Status: "success",
+      Data: {
+        id: oldUser._id,
+        username: oldUser.username || "",
+        email: oldUser.email || "",
+        token,
+      },
     });
-
-    res.status(200).json({ result: oldUser, token });
   } catch (err) {
-    res.status(500).json({ message: "Something went wrong" });
+    res.status(500).json({
+      Status: "failure",
+      Error: {
+        message: "Something went wrong, please try again later.",
+        name: "ServerError",
+        code: "EX-500",
+      },
+    });
   }
 };
 
 export const signup = async (req, res) => {
-
-  const { email, password, name } = req.body;
+  const { email, password, username } = req.body;
 
   try {
     const oldUser = await User.findOne({ email });
 
-    if (oldUser)
-      return res.status(400).json({ message: "User already exists" });
+    if (oldUser) {
+      return res.status(403).json({
+        Status: "failure",
+        Error: {
+          message: "User already exists",
+          name: "DuplicateError",
+          code: "EX-00102",
+        },
+      });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const result = await User.create({
-
       email: email || "",
       password: hashedPassword,
-      name: name || "",
+      username: username || "",
     });
 
-    const token = jwt.sign({ email: result.email, id: result._id }, secret, {
-      expiresIn: "1h",
-    });
+    const token = jwt.sign(
+      { username: result.username, id: result._id },
+      secret,
+      {
+        expiresIn: "1h",
+      }
+    );
 
-    res.status(201).json({ result, token });
+    res.status(201).json({
+      Status: "success",
+      Data: {
+        id: result._id,
+        username: result.username,
+        email: result.email || "",
+        token,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: "Something went wrong" });
+    res.status(500).json({
+      Status: "failure",
+      Error: {
+        message: "Something went wrong, please try again later.",
+        name: "ServerError",
+        code: "EX-500",
+      },
+    });
 
     console.log(error);
   }
