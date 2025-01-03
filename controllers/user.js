@@ -75,7 +75,13 @@ export const signup = async (req, res) => {
   const { email, password, username } = req.body;
 
   try {
-    const oldUser = await User.findOne({ email });
+    let oldUser;
+
+    if (email) {
+      oldUser = await User.findOne({ email });
+    } else {
+      oldUser = await User.findOne({ username });
+    }
 
     if (oldUser) {
       return res.status(403).json({
