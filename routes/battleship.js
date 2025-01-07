@@ -6,15 +6,18 @@ import {
   leaveGame,
   kickPlayer,
   updateGameBoard,
+  getAllRooms,
 } from "../controllers/battleship.js";
+import auth from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.post("/create", createGame);
-router.post("/join", joinGame);
-router.post("/leave", leaveGame);
-router.post("/kick", kickPlayer);
-router.post("/update-board", updateGameBoard);
-router.get("/get-game/:roomID", getGame);
+router.post("/create", auth, createGame);
+router.post("/join", auth, joinGame);
+router.post("/leave", auth, leaveGame);
+router.post("/kick", auth, kickPlayer);
+router.post("/update-board", auth, updateGameBoard);
+router.get("/get-game/:roomID", auth, getGame);
+router.get("/allRooms", auth, getAllRooms);
 
 export default router;
