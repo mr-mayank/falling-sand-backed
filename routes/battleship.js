@@ -7,6 +7,7 @@ import {
   kickPlayer,
   updateGameBoard,
   getAllRooms,
+  startGame,
 } from "../controllers/battleship.js";
 import auth from "../middleware/auth.js";
 
@@ -17,7 +18,8 @@ router.post("/join", auth, joinGame);
 router.post("/leave", auth, leaveGame);
 router.post("/kick", auth, kickPlayer);
 router.post("/update-board", auth, updateGameBoard);
+router.post("/start", auth, startGame);
 router.get("/get-game/:roomID", auth, getGame);
-router.get("/allRooms", auth, getAllRooms);
+router.get("/get-all-rooms", auth, getAllRooms);
 
 export default router;
