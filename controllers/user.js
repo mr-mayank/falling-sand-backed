@@ -132,3 +132,51 @@ export const signup = async (req, res) => {
     console.log(error);
   }
 };
+
+export const getUserDetails = async (req, res) => {
+  try {
+    const token = req.headers["accesstoken"]?.split(" ")[1]; // Extract token from header
+    if (!token) {
+      return res.status(403).json({
+        Status: "failure",
+        Error: {
+          message: "Unauthorized. Token is required.",
+          name: "AuthenticationError",
+          code: "EX-00103",
+        },
+      });
+    }
+
+    const decoded = jwt.verify(token, secret);
+
+    const user = await User.findById(decoded.id).select("username email");
+    if (!user) {
+      return res.status(403).json({
+        Status: "failure",
+        Error: {
+          message: "User not found.",
+          name: "NotFoundError",
+          code: "EX-00104",
+        },
+      });
+    }
+
+    res.status(200).json({
+      Status: "success",
+      Data: {
+        id: user._id,
+        name: user.username,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      Status: "failure",
+      Error: {
+        message: "Something went wrong, please try again later.",
+        name: "ServerError",
+        code: "EX-500",
+      },
+    });
+  }
+};

@@ -322,6 +322,35 @@ export const kickPlayer = async (req, res) => {
   }
 };
 
+export const getAllRooms = async (req, res) => {
+  try {
+    const games = await Battleship.find()
+      .select("roomID player1 player2 status password _id")
+      .sort({ _id: -1 });
+
+    if (games.length === 0) {
+      return res.status(200).json({
+        message: "No games found",
+        status: "success",
+        data: [],
+      });
+    }
+
+    return res.status(200).json({
+      data: games,
+      count: games.length,
+      status: "success",
+    });
+  } catch (error) {
+    console.error("Get all rooms error:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+      status: "failure",
+    });
+  }
+};
+
 export const getGame = async (req, res) => {
   try {
     const { roomID } = req.params;
