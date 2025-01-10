@@ -45,6 +45,32 @@ io.on("connection", (socket) => {
 
     // Join the game room
     socket.join(gameId);
+
+    // Notify all players in the room about the new join
+    io.to(gameId).emit("playerJoined", { playerId, gameId });
+  });
+
+  socket.on("leaveGame", ({ playerId, gameId }) => {
+    const gamePlayers = activeGames.get(gameId);
+    if (gamePlayers) {
+      gamePlayers.delete(playerId);
+      if (gamePlayers.size === 0) {
+        activeGames.delete(gameId);
+      }
+    }
+
+    // Notify remaining players
+    socket.to(gameId).emit("playerLeft", { playerId, gameId });
+  });
+
+  socket.on("kickPlayer", ({ kickedPlayerId, gameId }) => {
+    const gamePlayers = activeGames.get(gameId);
+    if (gamePlayers) {
+      gamePlayers.delete(kickedPlayerId);
+    }
+
+    // Notify all players including the kicked player
+    io.to(gameId).emit("playerKicked", { kickedPlayerId, gameId });
   });
 
   socket.on("reconnect_player", async ({ playerId, gameId }) => {

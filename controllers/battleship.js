@@ -1,4 +1,5 @@
 import Battleship from "../models/Battleship.js";
+import User from "../models/User.js";
 
 export const createGame = async (req, res) => {
   try {
@@ -574,10 +575,10 @@ export const getGame = async (req, res) => {
       });
     }
 
-    const game = await Battleship.findOne({ roomID });
+    const game = await Battleship.findOne({ _id: roomID });
 
     if (!game) {
-      return res.status(404).json({
+      return res.status(400).json({
         Status: "failure",
         Error: {
           message: "Game not found",
@@ -586,19 +587,30 @@ export const getGame = async (req, res) => {
         },
       });
     }
+    let player1, player2;
+    if (game) {
+      if (game.player1) {
+        player1 = await User.findOne({ _id: game.player1 }).select(
+          "username _id"
+        );
+      }
+      if (game.player2) {
+        player2 = await User.findOne({ _id: game.player2 }).select(
+          "username _id"
+        );
+      }
+    }
 
     return res.status(200).json({
       Status: "success",
       Data: {
-        id: gameResponse._id,
-        roomID: gameResponse.roomID,
-        player1: gameResponse.player1,
-        player2: gameResponse.player2,
-        status: gameResponse.status,
-        board1: gameResponse.board1,
-        board2: gameResponse.board2,
-        turn: gameResponse.player1,
-        hasPassword: !!gameResponse.password,
+        id: game._id,
+        name: game.roomID,
+        player1: player1 ? { id: player1._id, name: player1.username } : null,
+        player2: player2 ? { id: player2._id, name: player2.username } : null,
+        status: game.status,
+        turn: game.turn,
+        isPrivate: !!game.password,
       },
     });
   } catch (error) {
