@@ -31,8 +31,6 @@ const io = new Server(httpServer, {
 const activeGames = new Map();
 
 io.on("connection", (socket) => {
-  console.log("A user connected");
-
   socket.on("joinGame", ({ playerId, gameId }) => {
     socket.playerId = playerId;
     socket.gameId = gameId;
@@ -61,6 +59,10 @@ io.on("connection", (socket) => {
 
     // Notify remaining players
     socket.to(gameId).emit("playerLeft", { playerId, gameId });
+  });
+
+  socket.on("startGame", ({ gameId }) => {
+    io.to(gameId).emit("gameStarted", { gameId });
   });
 
   socket.on("kickPlayer", ({ kickedPlayerId, gameId }) => {

@@ -34,6 +34,8 @@ export const createGame = async (req, res) => {
       player2: null,
       board1: "",
       board2: "",
+      key1: "",
+      key2: "",
       status: "waiting",
       password: password || null,
       turn: null,
@@ -236,7 +238,7 @@ export const startGame = async (req, res) => {
       });
     }
 
-    const game = await Battleship.findOne({ roomID });
+    const game = await Battleship.findOne({ _id: roomID });
 
     if (!game) {
       return res.status(400).json({
@@ -288,14 +290,14 @@ export const startGame = async (req, res) => {
     res.status(200).json({
       Status: "success",
       Data: {
-        id: gameResponse._id,
-        roomID: gameResponse.roomID,
-        player1: gameResponse.player1,
-        player2: gameResponse.player2,
-        status: gameResponse.status,
-        board1: gameResponse.board1,
-        board2: gameResponse.board2,
-        turn: gameResponse.player1,
+        id: game._id,
+        roomID: game.roomID,
+        player1: game.player1,
+        player2: game.player2,
+        status: game.status,
+        board1: game.board1,
+        board2: game.board2,
+        turn: game.player1,
       },
     });
   } catch (error) {
@@ -608,6 +610,8 @@ export const getGame = async (req, res) => {
         name: game.roomID,
         player1: player1 ? { id: player1._id, name: player1.username } : null,
         player2: player2 ? { id: player2._id, name: player2.username } : null,
+        gameBoard1: game.board1,
+        gameBoard2: game.board2,
         status: game.status,
         turn: game.turn,
         isPrivate: !!game.password,
@@ -628,21 +632,21 @@ export const getGame = async (req, res) => {
 
 export const updateGameBoard = async (req, res) => {
   try {
-    const { roomID, player, board } = req.body;
+    const { roomID, player, board, key } = req.body;
 
-    if (!roomID || !player || !board) {
+    if (!roomID || !player || !board || !key) {
       return res.status(400).json({
         Status: "failure",
         Error: {
           message:
-            "Missing required fields: roomID, player, board are required",
+            "Missing required fields: roomID, player, board, key are required",
           name: "MissingFields",
           code: "EX-400",
         },
       });
     }
 
-    const game = await Battleship.findOne({ roomID });
+    const game = await Battleship.findOne({ _id: roomID });
 
     if (!game) {
       return res.status(404).json({
@@ -651,6 +655,59 @@ export const updateGameBoard = async (req, res) => {
           message: "Game not found",
           name: "NotFound",
           code: "EX-404",
+        },
+      });
+    }
+
+    if (player !== game.player1 && player !== game.player2) {
+      return res.status(400).json({
+        Status: "failure",
+        Error: {
+          message: "You are not a part of this game",
+          name: "NotPartOfGame",
+          code: "EX-400",
+        },
+      });
+    }
+
+    if (player === game.player2 && game.board2 === "") {
+      const updatedGame = await Battleship.findOneAndUpdate(
+        { _id: roomID },
+        {
+          $set: {
+            board2: board,
+            key2: key,
+            turn: game.player1,
+          },
+        },
+        { new: true }
+      );
+      return res.status(200).json({
+        Status: "success",
+        Data: {
+          message: "Board updated successfully",
+          board: updatedGame.board2,
+        },
+      });
+    }
+
+    if (player === game.player1 && game.board1 === "") {
+      const updatedGame = await Battleship.findOneAndUpdate(
+        { _id: roomID },
+        {
+          $set: {
+            board1: board,
+            key1: key,
+            turn: game.player2,
+          },
+        },
+        { new: true }
+      );
+      return res.status(200).json({
+        Status: "success",
+        Data: {
+          message: "Board updated successfully",
+          board: updatedGame.board1,
         },
       });
     }
@@ -671,6 +728,7 @@ export const updateGameBoard = async (req, res) => {
         {
           $set: {
             board1: board,
+            key1: key,
             turn: game.player2,
           },
         },
@@ -691,6 +749,7 @@ export const updateGameBoard = async (req, res) => {
           {
             $set: {
               board2: board,
+              key2: key,
               turn: game.player1,
             },
           },
