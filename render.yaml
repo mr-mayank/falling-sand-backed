@@ -6,7 +6,7 @@ services:
     buildCommand: npm install
     startCommand: npm start
     branch: master # Adjust if your default branch is different
-    region: india # Change to your preferred Render region
+    region: singapore # Change to your preferred Render region
     autoDeploy: true
     envVars:
       - key: NODE_ENV
