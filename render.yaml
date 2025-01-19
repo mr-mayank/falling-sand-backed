@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: falling-sand-backend
+    env: node
+    plan: free # Change to a paid plan if needed
+    buildCommand: npm install
+    startCommand: npm start
+    branch: master # Adjust if your default branch is different
+    region: india # Change to your preferred Render region
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 8080 # Ensure this matches the port your app listens on
