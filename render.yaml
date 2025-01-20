@@ -11,5 +11,8 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: MONGO_URI
+        value: mongodb+srv://mrmayank:game-Arena@gamearena1.aij0v.mongodb.net/gameArena
       - key: PORT
         value: 8080 # Ensure this matches the port your app listens on
+    
