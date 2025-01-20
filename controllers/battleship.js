@@ -6,7 +6,7 @@ export const createGame = async (req, res) => {
     const { roomID, player1, password } = req.body;
 
     if (!roomID || !player1) {
-      return res.status(400).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "Missing required fields: roomID and player1 are required",
@@ -18,7 +18,7 @@ export const createGame = async (req, res) => {
 
     const existingGame = await Battleship.findOne({ roomID });
     if (existingGame) {
-      return res.status(400).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "A game with this room ID already exists",
@@ -80,7 +80,7 @@ export const joinGame = async (req, res) => {
     const { roomID, player, password } = req.body;
 
     if (!roomID || !player) {
-      return res.status(400).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "Missing required fields: roomID and player2 are required",
@@ -93,7 +93,7 @@ export const joinGame = async (req, res) => {
     const game = await Battleship.findOne({ roomID });
 
     if (!game) {
-      return res.status(400).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "Game not found",
@@ -104,7 +104,7 @@ export const joinGame = async (req, res) => {
     }
 
     if (game.status !== "waiting") {
-      return res.status(400).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "Game is not available for joining",
@@ -115,7 +115,7 @@ export const joinGame = async (req, res) => {
     }
 
     if (!game.player1) {
-      return res.status(400).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "Host has not joined the game",
@@ -126,7 +126,7 @@ export const joinGame = async (req, res) => {
     }
 
     if (game.player1 === player) {
-      return res.status(400).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "You cannot join your own game",
@@ -137,7 +137,7 @@ export const joinGame = async (req, res) => {
     }
 
     if (game.player2) {
-      return res.status(400).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "Game is already full",
@@ -149,7 +149,7 @@ export const joinGame = async (req, res) => {
 
     if (game.password) {
       if (!password) {
-        return res.status(401).json({
+        return res.status(403).json({
           Status: "failure",
           Error: {
             message: "This game requires a password",
@@ -160,7 +160,7 @@ export const joinGame = async (req, res) => {
       }
 
       if (game.password !== password) {
-        return res.status(401).json({
+        return res.status(403).json({
           Status: "failure",
           Error: {
             message: "Incorrect password",
@@ -228,7 +228,7 @@ export const startGame = async (req, res) => {
     const { roomID, player } = req.body;
 
     if (!roomID || !player) {
-      return res.status(400).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "Missing required fields: roomID and player2 are required",
@@ -238,10 +238,21 @@ export const startGame = async (req, res) => {
       });
     }
 
+    if (!roomID.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(403).json({
+        Status: "failure",
+        Error: {
+          message: "Invalid game ID format",
+          name: "InvalidFormat",
+          code: "EX-400",
+        },
+      });
+    }
+
     const game = await Battleship.findOne({ _id: roomID });
 
     if (!game) {
-      return res.status(400).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "Game not found",
@@ -252,7 +263,7 @@ export const startGame = async (req, res) => {
     }
 
     if (game.status !== "waiting") {
-      return res.status(400).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "Game is already started",
@@ -263,7 +274,7 @@ export const startGame = async (req, res) => {
     }
 
     if (game.player1 !== player) {
-      return res.status(400).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "Only host can start the game",
@@ -274,7 +285,7 @@ export const startGame = async (req, res) => {
     }
 
     if (!game.player2) {
-      return res.status(400).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "All players must join the game before starting it",
@@ -318,12 +329,23 @@ export const leaveGameAfk = async (req, res) => {
     const { roomID, player } = req.body;
 
     if (!roomID || !player) {
-      return res.status(400).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "Missing required fields: roomID and player2 are required",
           name: "MissingFields",
           code: "EX-00201",
+        },
+      });
+    }
+
+    if (!roomID.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(403).json({
+        Status: "failure",
+        Error: {
+          message: "Invalid game ID format",
+          name: "InvalidFormat",
+          code: "EX-400",
         },
       });
     }
@@ -428,7 +450,7 @@ export const leaveGame = async (req, res) => {
     const { roomID, player } = req.body;
 
     if (!roomID || !player) {
-      return res.status(400).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "Missing required fields: roomID and player2 are required",
@@ -441,7 +463,7 @@ export const leaveGame = async (req, res) => {
     const game = await Battleship.findOne({ roomID });
 
     if (!game) {
-      return res.status(404).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "Game not found",
@@ -519,7 +541,7 @@ export const leaveGame = async (req, res) => {
       }
     }
 
-    return res.status(400).json({
+    return res.status(403).json({
       Status: "failure",
       Error: {
         message: "Player not found in this game",
@@ -545,7 +567,7 @@ export const kickPlayer = async (req, res) => {
     const { roomID, player } = req.body;
 
     if (!roomID || !player) {
-      return res.status(400).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "Missing required fields: roomID and player2 are required",
@@ -558,7 +580,7 @@ export const kickPlayer = async (req, res) => {
     const game = await Battleship.findOne({ roomID });
 
     if (!game) {
-      return res.status(404).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "Game not found",
@@ -569,7 +591,7 @@ export const kickPlayer = async (req, res) => {
     }
 
     if (game.player1 === player) {
-      return res.status(400).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "You cannot kick the host",
@@ -580,7 +602,7 @@ export const kickPlayer = async (req, res) => {
     }
 
     if (game.status === "active") {
-      return res.status(400).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "You cannot kick a player while the game is active",
@@ -614,7 +636,7 @@ export const kickPlayer = async (req, res) => {
       });
     }
 
-    return res.status(400).json({
+    return res.status(403).json({
       Status: "failure",
       Error: {
         message: "Player not found in this game",
@@ -637,7 +659,7 @@ export const kickPlayer = async (req, res) => {
 
 export const getAllRooms = async (req, res) => {
   try {
-    const games = await Battleship.find()
+    const games = await Battleship.find({ status: "waiting" })
       .select("roomID player1 player2 status password _id")
       .sort({ _id: -1 });
 
@@ -677,11 +699,22 @@ export const getGame = async (req, res) => {
     const { roomID } = req.params;
 
     if (!roomID) {
-      return res.status(400).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "Missing required fields: roomID is required",
           name: "MissingFields",
+          code: "EX-00201",
+        },
+      });
+    }
+
+    if (!roomID.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(403).json({
+        Status: "failure",
+        Error: {
+          message: "Invalid game ID format",
+          name: "InvalidFormat",
           code: "EX-400",
         },
       });
@@ -690,7 +723,7 @@ export const getGame = async (req, res) => {
     const game = await Battleship.findOne({ _id: roomID });
 
     if (!game) {
-      return res.status(400).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "Game not found",
@@ -744,10 +777,10 @@ export const getGame = async (req, res) => {
 
 export const updateGameBoard = async (req, res) => {
   try {
-    const { roomID, player, board, key, turn } = req.body;
+    const { roomID, player, board, key, turn, status } = req.body;
 
-    if (!roomID || !player || !board || !key) {
-      return res.status(400).json({
+    if (!roomID || !player || !board) {
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message:
@@ -758,10 +791,21 @@ export const updateGameBoard = async (req, res) => {
       });
     }
 
+    if (!roomID.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(403).json({
+        Status: "failure",
+        Error: {
+          message: "Invalid game ID format",
+          name: "InvalidFormat",
+          code: "EX-400",
+        },
+      });
+    }
+
     const game = await Battleship.findOne({ _id: roomID });
 
     if (!game) {
-      return res.status(404).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "Game not found",
@@ -772,7 +816,7 @@ export const updateGameBoard = async (req, res) => {
     }
 
     if (player !== game.player1 && player !== game.player2) {
-      return res.status(400).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "You are not a part of this game",
@@ -823,7 +867,7 @@ export const updateGameBoard = async (req, res) => {
     }
 
     if (player !== game.turn) {
-      return res.status(400).json({
+      return res.status(403).json({
         Status: "failure",
         Error: {
           message: "It is not your turn",
@@ -834,11 +878,12 @@ export const updateGameBoard = async (req, res) => {
     }
     if (game.player1 === player) {
       const updatedGame = await Battleship.findOneAndUpdate(
-        { roomID },
+        { _id: roomID },
         {
           $set: {
             board2: board,
             turn: turn,
+            status: status ? status : game.status,
           },
         },
         { new: true }
@@ -848,18 +893,18 @@ export const updateGameBoard = async (req, res) => {
         Status: "success",
         Data: {
           message: "Board updated successfully",
-          board: updatedGame.board1,
-          turn: updatedGame.turn,
+          turn: turn,
         },
       });
     } else if (game.player2 === player) {
       {
         const updatedGame = await Battleship.findOneAndUpdate(
-          { roomID },
+          { _id: roomID },
           {
             $set: {
               board1: board,
               turn: turn,
+              status: status ? status : game.status,
             },
           },
           { new: true }
@@ -869,8 +914,7 @@ export const updateGameBoard = async (req, res) => {
           Status: "success",
           Data: {
             message: "Board updated successfully",
-            board: updatedGame.board2,
-            turn: updatedGame.turn,
+            turn: turn,
           },
         });
       }
