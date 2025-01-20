@@ -137,11 +137,12 @@ class GameSocketHandler {
     }
   }
 
-  handleCreationComplete(socket, { gameId }) {
-    this.io.to(gameId).emit("createComplete", { gameId });
+  handleCreationComplete(socket, { gameId, playerId }) {
+    this.io.to(gameId).emit("createComplete", { gameId, playerId });
   }
 
   handleMakeMove(socket, data) {
+    console.log(data, "data");
     this.io.to(data.gameId).emit("movePlayed", data);
   }
 

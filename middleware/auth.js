@@ -7,7 +7,7 @@ const auth = async (req, res, next) => {
     const token = req.headers["accesstoken"]?.split(" ")[1];
 
     if (!token) {
-      return res.status(403).json({
+      return res.status(405).json({
         Status: "failure",
         Error: {
           message: "Unauthorized. No token provided.",
@@ -21,7 +21,7 @@ const auth = async (req, res, next) => {
     req.user_Id = decoded.id; // Attach user ID to request
     next();
   } catch (error) {
-    res.status(403).json({
+    res.status(405).json({
       Status: "failure",
       Error: {
         message: "Invalid or expired token.",
